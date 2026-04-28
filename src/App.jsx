@@ -1,4 +1,4 @@
-import  { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import ReactPlayer from "react-player";
 import logo from "./assets/youtube and taobao.png";
 import poster from "./assets/psd chor2.png";
@@ -9,8 +9,7 @@ const videos = [
     id: 1,
     badge: "26:00",
     label: "1.របៀបបង្កើតគណនី",
-    videoUrl:
-      "https://www.youtube.com/shorts/5yroddfwvng",
+    videoUrl: "https://www.youtube.com/shorts/5yroddfwvng",
     steps: [
       { time: "00:16", desc: "ដើម្បីបង្កើតគណនី" },
       { time: "01:12", desc: "ចូលបង្កើតគណនី ក្នុង VTS App" },
@@ -63,12 +62,17 @@ const App = () => {
   const scrollRef = useRef(null);
   const isScrollingRef = useRef(false);
   const scrollStopTimerRef = useRef(null);
+  const isProgrammaticScrollRef = useRef(false);
+  const programmaticScrollTimerRef = useRef(null);
   const activeVideo = videos[activeIndex] ?? videos[0];
 
   useEffect(() => {
     return () => {
       if (scrollStopTimerRef.current) {
         clearTimeout(scrollStopTimerRef.current);
+      }
+      if (programmaticScrollTimerRef.current) {
+        clearTimeout(programmaticScrollTimerRef.current);
       }
     };
   }, []);
@@ -86,6 +90,8 @@ const App = () => {
   }, [fullscreenIndex]);
 
   const handleScroll = () => {
+    // Ignore scroll events triggered by programmatic scrollIntoView calls.
+    if (isProgrammaticScrollRef.current) return;
     const el = scrollRef.current;
     if (!el) return;
     // Mark scrolling state briefly so click handlers can ignore swipe taps.
@@ -120,11 +126,19 @@ const App = () => {
     const items = el.querySelectorAll(".snap-item");
     const target = items[index];
     if (!target) return;
+    // Suppress handleScroll during programmatic smooth scroll to avoid extra re-renders.
+    isProgrammaticScrollRef.current = true;
+    if (programmaticScrollTimerRef.current) {
+      clearTimeout(programmaticScrollTimerRef.current);
+    }
     target.scrollIntoView({
       behavior: "smooth",
       inline: "center",
       block: "nearest",
     });
+    programmaticScrollTimerRef.current = setTimeout(() => {
+      isProgrammaticScrollRef.current = false;
+    }, 500);
   };
 
   const openFullscreen = (index) => {
@@ -134,6 +148,7 @@ const App = () => {
   const closeFullscreen = () => {
     setFullscreenIndex(null);
   };
+  console.log("activeVideo", activeVideo);
 
   return (
     <div className="min-h-screen p-3 bg-gray-100 flex items-center justify-center">
