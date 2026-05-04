@@ -59,12 +59,12 @@ const App = () => {
   const [activeIndex, setActiveIndex] = useState(1);
   // Which video is opened in fullscreen modal; null means modal is closed.
   const [fullscreenIndex, setFullscreenIndex] = useState(null);
-  const [playerSession, setPlayerSession] = useState(0);
   const scrollRef = useRef(null);
   const isScrollingRef = useRef(false);
   const scrollStopTimerRef = useRef(null);
   const isProgrammaticScrollRef = useRef(false);
   const programmaticScrollTimerRef = useRef(null);
+  const overlayRef = useRef(null);
   const activeVideo = videos[activeIndex] ?? videos[0];
 
   useEffect(() => {
@@ -109,6 +109,20 @@ const App = () => {
     return () => {
       document.body.style.overflow = previousOverflow;
     };
+  }, [fullscreenIndex]);
+
+  // Request native device fullscreen as soon as the overlay mounts.
+  useEffect(() => {
+    if (fullscreenIndex === null) return;
+    const el = overlayRef.current;
+    if (!el) return;
+    const requestFS =
+      el.requestFullscreen ||
+      el.webkitRequestFullscreen ||
+      el.mozRequestFullScreen;
+    if (requestFS) {
+      requestFS.call(el).catch(() => {});
+    }
   }, [fullscreenIndex]);
 
   // Sync React state when user exits native fullscreen (back button / swipe down).
@@ -179,46 +193,7 @@ const App = () => {
     }, 500);
   };
 
-  const requestNativeFullscreen = () => {
-    const target = document.documentElement;
-    const requestFS =
-      target.requestFullscreen ||
-      target.webkitRequestFullscreen ||
-      target.mozRequestFullScreen ||
-      target.msRequestFullscreen;
-    if (!requestFS) return;
-    try {
-      const maybePromise = requestFS.call(target);
-      if (maybePromise && typeof maybePromise.catch === "function") {
-        maybePromise.catch(() => {});
-      }
-    } catch {
-      // Ignore fullscreen rejections in restricted WebViews.
-    }
-  };
-
-  const normalizeYouTubeUrl = (url) => {
-    try {
-      const parsed = new URL(url);
-      if (
-        parsed.hostname.includes("youtube.com") &&
-        parsed.pathname.startsWith("/shorts/")
-      ) {
-        const id = parsed.pathname.split("/").filter(Boolean)[1];
-        if (id) {
-          return `https://www.youtube.com/watch?v=${id}`;
-        }
-      }
-      return url;
-    } catch {
-      return url;
-    }
-  };
-
   const openFullscreen = (index) => {
-    // Fullscreen APIs are most reliable when called directly from a user gesture.
-    requestNativeFullscreen();
-    setPlayerSession((prev) => prev + 1);
     setFullscreenIndex(index);
   };
 
@@ -230,6 +205,7 @@ const App = () => {
     }
     setFullscreenIndex(null);
   };
+  console.log("activeVideo", activeVideo);
 
   return (
     <div className="min-h-screen bg-transparent">
@@ -246,7 +222,7 @@ const App = () => {
         .snap-item.inactive .snap-label { transform: scale(0.96); font-size: 13px; }
       `}</style>
 
-      <div className="w-full rounded-2xl overflow-hidden">
+      <div className="w-full bg-[#ffffff] rounded-2xl overflow-hidden">
         {/* Header */}
         <div className="flex items-center gap-3 mb-4 px-4 pt-4">
           <div className="rounded-xl shrink-0  flex items-center justify-center">
@@ -382,6 +358,7 @@ const App = () => {
       {fullscreenIndex !== null && videos[fullscreenIndex] && (
         // Fullscreen overlay: tap outside or X button to close.
         <div
+          ref={overlayRef}
           onClick={closeFullscreen}
           className="fixed inset-0 z-50 bg-black flex items-center justify-center"
         >
@@ -404,8 +381,7 @@ const App = () => {
               }}
             >
               <ReactPlayer
-                key={`fs-player-${fullscreenIndex}-${playerSession}`}
-                src={normalizeYouTubeUrl(videos[fullscreenIndex].videoUrl)}
+                src={videos[fullscreenIndex].videoUrl}
                 width="100%"
                 height="100%"
                 controls
@@ -413,10 +389,9 @@ const App = () => {
                 config={{
                   youtube: {
                     playerVars: {
-                      autoplay: 1,
                       rel: 0,
                       modestbranding: 1,
-                      playsinline: 1,
+                      playsinline: 0,
                     },
                   },
                 }}
