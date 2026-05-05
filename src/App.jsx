@@ -3,7 +3,8 @@ import ReactPlayer from "react-player";
 import logo from "./assets/youtube and taobao.png";
 import poster from "./assets/psd chor2.png";
 import poster1 from "./assets/image.png";
-
+import lamp from "./assets/glowing-incandescent-light-bulb-illustration 1.svg";
+import copy from "./assets/Frame.svg";
 const videos = [
   {
     id: 1,
@@ -60,6 +61,8 @@ const App = () => {
   // Which video is opened in fullscreen modal; null means modal is closed.
   const [fullscreenIndex, setFullscreenIndex] = useState(null);
   const [playerSession, setPlayerSession] = useState(0);
+  const [shareOpen, setShareOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
   const scrollRef = useRef(null);
   const isScrollingRef = useRef(false);
   const scrollStopTimerRef = useRef(null);
@@ -229,6 +232,8 @@ const App = () => {
         .catch(() => {});
     }
     setFullscreenIndex(null);
+    setShareOpen(false);
+    setCopied(false);
   };
 
   return (
@@ -244,20 +249,27 @@ const App = () => {
         }
         .snap-item.active .snap-label { transform: scale(1.08); font-size: 15px; font-weight: 900; }
         .snap-item.inactive .snap-label { transform: scale(0.96); font-size: 13px; }
+        @keyframes slideUp {
+          from { transform: translateY(100%); }
+          to   { transform: translateY(0); }
+        }
+        .share-drawer { animation: slideUp 0.35s cubic-bezier(0.32,0.72,0,1) forwards; }
       `}</style>
 
       <div className="w-full rounded-2xl overflow-hidden">
         {/* Header */}
-        <div className="flex items-center gap-3 mb-4 px-4 pt-4">
-          <div className="rounded-xl shrink-0  flex items-center justify-center">
-            <img src={logo} alt="Logo" className="h-15 w-15 object-contain" />
+        <div className="flex items-center mb-4 px-4 pt-4">
+          <div className="flex relative px-13 py-2 items-center gap-1 bg-[#003299] pr-5 rounded-full ">
+            <div className="shrink-0 absolute  -left-1 flex items-center justify-center">
+              <img src={logo} alt="Logo" className="h-12 w-12 object-contain" />
+            </div>
+            <span
+              className="text-lg self-end font-extrabold text-white"
+              style={{ fontFamily: "Khmer, sans-serif" }}
+            >
+              វិដេអូបង្រៀន
+            </span>
           </div>
-          <span
-            className="text-lg font-extrabold text-gray-800"
-            style={{ fontFamily: "Khmer, sans-serif" }}
-          >
-            វិដេអូបង្រៀន
-          </span>
         </div>
 
         {/* Video carousel — scroll-snap centered, no scrollbar */}
@@ -311,30 +323,48 @@ const App = () => {
                       openFullscreen(i);
                     }}
                     style={{
-                      width: 44,
-                      height: 44,
+                      backgroundColor: "transparent",
+                      width: 70,
+                      height: 70,
                       borderRadius: "50%",
-                      background: "rgba(0,0,0,0.15)",
-                      backdropFilter: "blur(1px)",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
                       border: "none",
                       cursor: "pointer",
                       pointerEvents: "auto",
+                      padding: "20px",
                     }}
                   >
                     <div
                       style={{
-                        width: 0,
-                        height: 0,
-                        borderTop: "9px solid transparent",
-                        borderBottom: "9px solid transparent",
-                        borderLeft: "16px solid white",
-                        marginLeft: 4,
-                        pointerEvents: "none",
+                        backgroundColor: "red",
+                        width: 44,
+                        height: 44,
+                        borderRadius: "50%",
+                        background: "rgba(0,0,0,0.15)",
+                        backdropFilter: "blur(1px)",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        border: "none",
+                        cursor: "pointer",
+                        pointerEvents: "auto",
+                        padding: "20px",
                       }}
-                    />
+                    >
+                      <div
+                        style={{
+                          width: 0,
+                          height: 0,
+                          borderTop: "9px solid transparent",
+                          borderBottom: "9px solid transparent",
+                          borderLeft: "16px solid white",
+                          marginLeft: 4,
+                          pointerEvents: "none",
+                        }}
+                      />
+                    </div>
                   </button>
                 </div>
               </div>
@@ -355,7 +385,8 @@ const App = () => {
             className="text-[15px] font-bold text-gray-800 mb-2"
             style={{ fontFamily: "Khmer, sans-serif" }}
           >
-            💡 ជំនួយ
+            <img src={lamp} alt="Lamp" className="inline-block w-4 h-4 mr-1" />
+            ជំនួយ
           </p>
           {(activeVideo?.steps ?? []).map((s, i) => (
             <div key={i} className="flex items-start gap-2 mb-1">
@@ -401,6 +432,7 @@ const App = () => {
                 width: "100%",
                 height: "100%",
                 background: "#000",
+                // padding: "10px",
               }}
             >
               <ReactPlayer
@@ -426,7 +458,7 @@ const App = () => {
             <button
               type="button"
               onClick={closeFullscreen}
-              className="absolute top-5 left-5 border border-white/35 rounded-full text-white bg-black/50 w-10 h-10 flex items-center justify-center cursor-pointer"
+              className="absolute top-5 right-5 border border-white/35 rounded-full text-white bg-black/50 w-12 h-12 flex items-center justify-center cursor-pointer"
               aria-label="Back"
             >
               <svg
@@ -434,18 +466,93 @@ const App = () => {
                 height="16"
                 viewBox="0 0 24 24"
                 fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-                aria-hidden="true"
+                stroke="currentColor"
+                strokeWidth="2"
               >
                 <path
-                  d="M15 6L9 12L15 18"
-                  stroke="currentColor"
-                  strokeWidth="2"
+                  d="M18 6L6 18M6 6l12 12"
                   strokeLinecap="round"
                   strokeLinejoin="round"
                 />
               </svg>
             </button>
+            {/* share icon */}
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setShareOpen(true);
+              }}
+              className="absolute bottom-2 left-2  rounded-full text-white  w-16 h-14 flex items-center justify-center cursor-pointer"
+              aria-label="Share"
+            ></button>
+
+            {/* Share bottom-sheet drawer */}
+            {shareOpen && (
+              <div
+                className="fixed inset-0 z-60 flex items-end"
+                onClick={() => {
+                  setShareOpen(false);
+                  setCopied(false);
+                }}
+              >
+                <div
+                  className="share-drawer w-full bg-white rounded-t-3xl px-5 pt-3 pb-8 shadow-2xl"
+                  onClick={() => {
+                    setShareOpen(false);
+                    setCopied(false);
+                  }}
+                >
+                  {/* Drag handle */}
+                  <div className="mx-auto mb-4 w-10 h-1 rounded-full bg-gray-300" />
+
+                  {/* Title */}
+                  <div className="flex items-center gap-2 mb-4">
+                    <img
+                      src={copy}
+                      alt="Copy"
+                      className="w-5 h-5 object-contain"
+                    />
+                    <span className="text-lg text-gray-900">Share</span>
+                  </div>
+
+                  {/* Link row */}
+                  <div className="flex items-center gap-2 bg-[#D2E5FF33] rounded-xl px-4 py-2">
+                    <span
+                      className="flex-1 text-sm text-gray-600 truncate"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigator.clipboard
+                          .writeText(videos[fullscreenIndex]?.videoUrl ?? "")
+                          .then(() => {
+                            setCopied(true);
+                            setTimeout(() => setCopied(false), 2000);
+                          })
+                          .catch(() => {});
+                      }}
+                    >
+                      {videos[fullscreenIndex]?.videoUrl}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigator.clipboard
+                          .writeText(videos[fullscreenIndex]?.videoUrl ?? "")
+                          .then(() => {
+                            setCopied(true);
+                            setTimeout(() => setCopied(false), 2000);
+                          })
+                          .catch(() => {});
+                      }}
+                      className="shrink-0 bg-[#D2E5FF] hover:bg-[#b3bfef] text-[#000000] text-sm font-semibold px-4 py-3 rounded-lg transition-colors"
+                    >
+                      {copied ? "Copied!" : "Copy link"}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
