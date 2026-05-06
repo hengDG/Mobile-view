@@ -483,7 +483,7 @@ const App = () => {
                 e.stopPropagation();
                 setShareOpen(true);
               }}
-              className="absolute bottom-2 left-0  rounded-full text-white border border-red-100  w-22 h-14 flex items-center justify-center cursor-pointer"
+              className="absolute bottom-2 left-0  rounded-full text-white   w-22 h-14 flex items-center justify-center cursor-pointer"
               aria-label="Share"
             ></button>
 
