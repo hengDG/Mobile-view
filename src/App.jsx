@@ -458,7 +458,7 @@ const App = () => {
             <button
               type="button"
               onClick={closeFullscreen}
-              className="absolute top-5 right-5 border border-white/35 rounded-full text-white bg-black/50 w-12 h-12 flex items-center justify-center cursor-pointer"
+              className="absolute top-3 right-5 border border-white/35 rounded-full text-white bg-black/50 w-12 h-12 flex items-center justify-center cursor-pointer"
               aria-label="Back"
             >
               <svg
@@ -513,7 +513,7 @@ const App = () => {
                       alt="Copy"
                       className="w-5 h-5 object-contain"
                     />
-                    <span className="text-lg text-gray-900">Share</span>
+                    <span className="text-lg text-gray-900">Share youtube link</span>
                   </div>
 
                   {/* Link row */}
