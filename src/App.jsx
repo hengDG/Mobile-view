@@ -11,11 +11,8 @@ const videos = [
     badge: "26:00",
     label: "1.របៀបបង្កើតគណនី",
     videoUrl: "https://www.youtube.com/shorts/5yroddfwvng",
-    steps: [
-      { time: "00:16", desc: "ដើម្បីបង្កើតគណនី" },
-      { time: "01:12", desc: "ចូលបង្កើតគណនី ក្នុង VTS App" },
-      { time: "01:58", desc: "បំពេញតាមលក្ខខណ្ឌដែលបានកំណត់" },
-    ],
+    steps:
+      "00:26-ចូលទៅកាន់កន្លែងបញ្ចូលអាសយដ្ឋាន 01:12-ចូលយក Address ក្នុង VTS App 01:58-បំពេញព័ត៌មាន",
     poster: poster,
   },
   {
@@ -23,11 +20,8 @@ const videos = [
     badge: "02:22",
     label: "2.បំពេញអាសយដ្ឋាន",
     videoUrl: "https://www.youtube.com/shorts/5yroddfwvng",
-    steps: [
-      { time: "00:26", desc: "ចូលទៅកាន់កន្លែងបញ្ចូលអាសយដ្ឋាន" },
-      { time: "01:40", desc: "ចូលយក Address ក្នុង VTS App" },
-      { time: "02:23", desc: "បំពេញព័ត៌មាន" },
-    ],
+    steps:
+      "00:22-ចូលទៅកាន់កន្លែងបញ្ចូលអាសយដ្ឋាន 01:40-ចូលយក Address ក្នុង VTS App 02:23-បំពេញព័ត៌មាន",
     poster: poster1,
   },
   {
@@ -35,11 +29,8 @@ const videos = [
     badge: "01:58",
     label: "3. របៀបទិញ",
     videoUrl: "https://www.youtube.com/shorts/5yroddfwvng",
-    steps: [
-      { time: "00:36", desc: "ដើម្បីធ្វើការទិញ" },
-      { time: "01:02", desc: "ចូលទៅកាន់ VTS App" },
-      { time: "02:38", desc: "ចុចលើទំនិញដែលចង់បានហូវ" },
-    ],
+    steps:
+      "00:36-ដើម្បីធ្វើការទិញ 01:02-ចូលទៅកាន់ VTS App 02:38-ចុចលើទំនិញដែលចង់បានហូវ",
     poster: poster,
   },
   {
@@ -47,11 +38,8 @@ const videos = [
     badge: "03:45",
     label: "4. របៀបដឹកជញ្ជូន",
     videoUrl: "https://www.youtube.com/shorts/5yroddfwvng",
-    steps: [
-      { time: "00:46", desc: "ដើម្បីដឹកជញ្ជូន" },
-      { time: "01:22", desc: "ចូលទៅកាន់ VTS App" },
-      { time: "02:58", desc: "ចុចលើទំនិញដែលចង់បានហូវ" },
-    ],
+    steps:
+      "00:46-ដើម្បីដឹកជញ្ជូន 01:22-ចូលទៅកាន់ VTS App 02:58-ចុចលើទំនិញដែលចង់បានហូវ",
     poster: poster1,
   },
 ];
@@ -69,6 +57,32 @@ const App = () => {
   const isProgrammaticScrollRef = useRef(false);
   const programmaticScrollTimerRef = useRef(null);
   const activeVideo = videos[activeIndex] ?? videos[0];
+
+  const parseSteps = (rawSteps) => {
+  if (typeof rawSteps !== "string") return [];
+
+  // Regex looks for: Start of string OR space, then 5 digits/colon, then a dash
+  // Example: "00:26-"
+  const stepPattern = /(?:^|\s)(\d{2}:\d{2})-/g;
+  const matches = [...rawSteps.matchAll(stepPattern)];
+
+  return matches.map((match, index) => {
+    const time = match[1];
+    const start = match.index + match[0].length;
+    
+    // The description ends where the next time stamp starts
+    const end = matches[index + 1] 
+      ? matches[index + 1].index 
+      : rawSteps.length;
+
+    return {
+      time: time,
+      desc: rawSteps.slice(start, end).trim()
+    };
+  });
+};
+
+  const activeSteps = parseSteps(activeVideo?.steps);
 
   useEffect(() => {
     return () => {
@@ -276,7 +290,7 @@ const App = () => {
         <div
           ref={scrollRef}
           onScroll={handleScroll}
-          className="no-scrollbar flex gap-2 overflow-x-auto scroll-snap-x mandatory WebkitOverflowScrolling-touch touch-pan-x px-[calc(50%-88px)] py-3"
+          className="no-scrollbar flex gap-2 overflow-x-auto scroll-snap-x mandatory WebkitOverflowScrolling-touch touch-auto px-[calc(50%-88px)] py-3"
         >
           {videos.map((v, i) => (
             <div
@@ -379,32 +393,24 @@ const App = () => {
           ))}
         </div>
 
-        {/* Steps section*/}
-        <div className=" rounded-xl p-3">
+        {/* Steps section */}
+        <div className="px-3 py-2">
           <p
-            className="text-[15px] font-bold text-gray-800 mb-2"
+            className="text-[16px] font-bold text-gray-900 mb-2"
             style={{ fontFamily: "Khmer, sans-serif" }}
           >
             <img src={lamp} alt="Lamp" className="inline-block w-4 h-4 mr-1" />
-            ជំនួយ
+            ជំហាន
           </p>
-          {(activeVideo?.steps ?? []).map((s, i) => (
-            <div key={i} className="flex items-start gap-2 mb-1">
-              <span
-                className="text-gray-600 text-sm"
-                style={{ fontFamily: "Khmer, sans-serif" }}
-              >
-                នាទី
-              </span>
-              <span className="text-[#1969da]  text-sm font-semibold">
-                {s.time}
-              </span>
-              <span
-                className="text-gray-700 text-sm"
-                style={{ fontFamily: "Khmer, sans-serif" }}
-              >
-                - {s.desc}
-              </span>
+          {activeSteps.map((s, i) => (
+            <div
+              key={i}
+              className="text-[15px] leading-[1.45] text-[#0e1830] mb-2"
+              style={{ fontFamily: "Khmer, sans-serif" }}
+            >
+              <span>នាទី </span>
+              <span className="text-[#1f6fe5] font-medium">{s.time}</span>
+              <span> - {s.desc}</span>
             </div>
           ))}
         </div>
@@ -438,6 +444,7 @@ const App = () => {
               <ReactPlayer
                 key={`fs-player-${fullscreenIndex}-${playerSession}`}
                 src={normalizeYouTubeUrl(videos[fullscreenIndex].videoUrl)}
+                // url={normalizeYouTubeUrl(videos[fullscreenIndex].videoUrl)}
                 width="100%"
                 height="100%"
                 controls
@@ -448,7 +455,7 @@ const App = () => {
                       autoplay: 1,
                       rel: 0,
                       modestbranding: 1,
-                      playsinline: 1,
+                      playsinline: 0,
                     },
                   },
                 }}
@@ -458,7 +465,7 @@ const App = () => {
             <button
               type="button"
               onClick={closeFullscreen}
-              className="absolute top-3 right-5 border border-white/35 rounded-full text-white bg-black/50 w-12 h-12 flex items-center justify-center cursor-pointer"
+              className="absolute top-10 right-5 border border-white/35 rounded-full text-white bg-black/50 w-12 h-12 flex items-center justify-center cursor-pointer"
               aria-label="Back"
             >
               <svg
@@ -513,7 +520,9 @@ const App = () => {
                       alt="Copy"
                       className="w-5 h-5 object-contain"
                     />
-                    <span className="text-lg text-gray-900">Share youtube link</span>
+                    <span className="text-lg text-gray-900">
+                      Share youtube link
+                    </span>
                   </div>
 
                   {/* Link row */}
